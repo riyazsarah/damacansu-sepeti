@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from api.endpoints.hello.hello import router as hello_router
 from api.endpoints.database.damacana_db import router as damacana_db_router
 
 

@@ -41,6 +41,7 @@ class DamacanaDBModel(BaseModel):
             }
         }
 
+
 class UpdateDamacanaModel(BaseModel):
     name: Union[str, None]
     description: Union[str, None]

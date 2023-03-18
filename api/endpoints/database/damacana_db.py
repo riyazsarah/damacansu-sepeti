@@ -28,6 +28,7 @@ async def create_damacana(damacana: DamacanaDBModel = Body(...)):
     )
     return JSONResponse(status_code=status.CREATED, content=created_damacana)
 
+
 @router.get(
     "/damacana/{id}",
     response_description="Retrieves damacana from it's ID.",
@@ -40,7 +41,9 @@ async def get_damacana_from_id(damacana_id: str):
     :return:  {DamacanaDBModel}
     """
     db = get_db(damacana_db)
-    if (damacana := await db[damacana_storage].find_one({"_id": damacana_id})) is not None:
+    if (
+        damacana := await db[damacana_storage].find_one({"_id": damacana_id})
+    ) is not None:
         return damacana
     elif damacana is None:
         return HTTPException(
@@ -60,16 +63,18 @@ async def get_damacana_from_id(damacana_id: str):
 async def get_damacana_from_name(damacana_name: str):
     f"""
     Retrieves a list of damacana that contains the specified name.
-    :param damacana_name: {str} 
+    :param damacana_name: {str}
     :return: {List[DamacanaDBModel]}
     """
     # $regex => if string contains
     # $options => regex options, i => lowercase regex search
     # to_list is necessary. it converts the search result to a list, with 1000 length limit.
     db = get_db(damacana_db)
-    damacana_list = await db[damacana_storage].find(
-        {"name": {"$regex": damacana_name, "$options": "i"}}
-    ).to_list(1000)
+    damacana_list = (
+        await db[damacana_storage]
+        .find({"name": {"$regex": damacana_name, "$options": "i"}})
+        .to_list(1000)
+    )
     if damacana_list:
         return JSONResponse(status_code=status.OK, content=damacana_list)
     else:
@@ -77,6 +82,7 @@ async def get_damacana_from_name(damacana_name: str):
             status_code=status.BAD_REQUEST,
             detail=f"no damacana contains the name {damacana_name}",
         )
+
 
 @router.get(
     "/damacana/",
@@ -94,5 +100,4 @@ async def list_damacana_storage():
         raise HTTPException(
             status.BAD_REQUEST, detail="no existing damacana in storage"
         )
-    return JSONResponse(status_code=status.OK, content=damacana_storage)
-
+    return JSONResponse(status_code=status.OK, content=damacana_list)
