@@ -4,59 +4,13 @@ All URIs are relative to */*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**create_access_token_user_signup_post**](DefaultApi.md#create_access_token_user_signup_post) | **POST** /user/signup | Create Access Token
 [**create_damacana_damacana_db_new_post**](DefaultApi.md#create_damacana_damacana_db_new_post) | **POST** /damacana/db/new | Create Damacana
 [**get_damacana_from_id_damacana_db_id_get**](DefaultApi.md#get_damacana_from_id_damacana_db_id_get) | **GET** /damacana/db/{id} | Get Damacana From Id
 [**get_damacana_from_name_damacana_db_search_get**](DefaultApi.md#get_damacana_from_name_damacana_db_search_get) | **GET** /damacana/db/search/ | Get Damacana From Name
 [**list_damacana_storage_damacana_db_get**](DefaultApi.md#list_damacana_storage_damacana_db_get) | **GET** /damacana/db/ | List Damacana Storage
 [**login_user_login_post**](DefaultApi.md#login_user_login_post) | **POST** /user/login | Login
-[**test_test_get**](DefaultApi.md#test_test_get) | **GET** /test | Test
-
-# **create_access_token_user_signup_post**
-> UserToken create_access_token_user_signup_post(body)
-
-Create Access Token
-
-### Example
-```python
-from __future__ import print_function
-import time
-import swagger_client
-from swagger_client.rest import ApiException
-from pprint import pprint
-
-# create an instance of the API class
-api_instance = swagger_client.DefaultApi()
-body = swagger_client.UserSignup() # UserSignup | 
-
-try:
-    # Create Access Token
-    api_response = api_instance.create_access_token_user_signup_post(body)
-    pprint(api_response)
-except ApiException as e:
-    print("Exception when calling DefaultApi->create_access_token_user_signup_post: %s\n" % e)
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **body** | [**UserSignup**](UserSignup.md)|  | 
-
-### Return type
-
-[**UserToken**](UserToken.md)
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[**refresh_auth_user_refresh_auth_post**](DefaultApi.md#refresh_auth_user_refresh_auth_post) | **POST** /user/refresh_auth | Refresh Auth
+[**sign_up_user_signup_post**](DefaultApi.md#sign_up_user_signup_post) | **POST** /user/signup | Sign Up
 
 # **create_damacana_damacana_db_new_post**
 > DamacanaDBModel create_damacana_damacana_db_new_post(body)
@@ -284,10 +238,10 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **test_test_get**
-> object test_test_get(secret_key=secret_key)
+# **refresh_auth_user_refresh_auth_post**
+> UserToken refresh_auth_user_refresh_auth_post(body)
 
-Test
+Refresh Auth
 
 ### Example
 ```python
@@ -297,36 +251,81 @@ import swagger_client
 from swagger_client.rest import ApiException
 from pprint import pprint
 
-
 # create an instance of the API class
-api_instance = swagger_client.DefaultApi(swagger_client.ApiClient(configuration))
-secret_key = 'secret_key' # str |  (optional) (default to secret_key)
+api_instance = swagger_client.DefaultApi()
+body = swagger_client.RefreshTokenEndpoint() # RefreshTokenEndpoint | 
 
 try:
-    # Test
-    api_response = api_instance.test_test_get(secret_key=secret_key)
+    # Refresh Auth
+    api_response = api_instance.refresh_auth_user_refresh_auth_post(body)
     pprint(api_response)
 except ApiException as e:
-    print("Exception when calling DefaultApi->test_test_get: %s\n" % e)
+    print("Exception when calling DefaultApi->refresh_auth_user_refresh_auth_post: %s\n" % e)
 ```
 
 ### Parameters
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **secret_key** | **str**|  | [optional] [default to secret_key]
+ **body** | [**RefreshTokenEndpoint**](RefreshTokenEndpoint.md)|  | 
 
 ### Return type
 
-**object**
+[**UserToken**](UserToken.md)
 
 ### Authorization
 
-[HTTPBearer](../README.md#HTTPBearer)
+No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **sign_up_user_signup_post**
+> UserToken sign_up_user_signup_post(body)
+
+Sign Up
+
+### Example
+```python
+from __future__ import print_function
+import time
+import swagger_client
+from swagger_client.rest import ApiException
+from pprint import pprint
+
+# create an instance of the API class
+api_instance = swagger_client.DefaultApi()
+body = swagger_client.UserSignup() # UserSignup | 
+
+try:
+    # Sign Up
+    api_response = api_instance.sign_up_user_signup_post(body)
+    pprint(api_response)
+except ApiException as e:
+    print("Exception when calling DefaultApi->sign_up_user_signup_post: %s\n" % e)
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **body** | [**UserSignup**](UserSignup.md)|  | 
+
+### Return type
+
+[**UserToken**](UserToken.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

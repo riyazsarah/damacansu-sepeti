@@ -35,5 +35,5 @@ setup(
     include_package_data=True,
     long_description="""\
     caner bir şeyler yapıyor  # noqa: E501
-    """,
+    """
 )

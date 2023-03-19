@@ -1,14 +1,27 @@
 import http
+import secrets
 from datetime import datetime
 
 import jwt
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends
 from fastapi.encoders import jsonable_encoder
 from motor.motor_asyncio import AsyncIOMotorCollection
 from starlette.responses import JSONResponse
 
-from api.endpoints.auth.auth import sign_up
-from api.models.users import UserToken, UserSignup, UserLogin, UserAuthFailed
+from api.auth.auth import (
+    sign_up_handler,
+    jwt_decode,
+    jwt_account_encode,
+    hash_and_salt_password,
+    compare_plain_hashed_password,
+)
+from api.models.users import (
+    UserToken,
+    UserSignup,
+    UserLogin,
+    UserAuthFailed,
+    RefreshTokenEndpoint,
+)
 from database.models import UserDBModel
 from database.connect import get_db, users_db, users_collection
 
@@ -19,8 +32,11 @@ router = APIRouter(prefix="/user")
     "/signup",
     response_description="Returns Bearer OAuth 2 token.",
     response_model=UserToken,
+    responses={
+        400: {"model": UserAuthFailed},
+    },
 )
-async def create_access_token(
+async def sign_up(
     user_details: UserSignup = Body(...),
     db: AsyncIOMotorCollection = Depends(
         get_db(database_name=users_db, collection_name=users_collection)
@@ -33,16 +49,46 @@ async def create_access_token(
     :param db:  {AsyncIOMotorCollection}
     :return:
     """
-    jwt_token, jwt_secret = sign_up(
+    tokens = sign_up_handler(
         email=user_details.email, password=user_details.password
     )
-
+    # assure that user not yet signed up
+    user_credentials = await db.find_one(
+        {UserDBModel.DBFields.EMAIL.value: user_details.email}
+    )
+    # if they did already
+    if user_credentials is not None:
+        # check if their auth token is still valid, if it is not, error will be raised.
+        expiration_time = jwt_decode(
+            dict(user_credentials).get(UserDBModel.DBFields.ACCESS_TOKEN.value),
+            dict(user_credentials).get(UserDBModel.DBFields.SECRET_TOKEN.value),
+        ).get("exp")
+        # convert unix timestamp to datetime
+        expiration_time = datetime.fromtimestamp(expiration_time.get("exp"))
+        # calculate the time difference between now and the expiration time.
+        time_difference = expiration_time - datetime.now()
+        return JSONResponse(
+            status_code=http.HTTPStatus.BAD_REQUEST,
+            content={
+                "error": "User already exists.",
+                "message": "Key will expire in {} hours, {} minutes and {} seconds."
+                + " You can use /refresh_auth endpoint with your refresh token if you want to reset your OAuth 2 token.".format(
+                    time_difference.seconds // 3600,
+                    (time_difference.seconds // 60) % 60,
+                    time_difference.seconds % 60,
+                ),
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            },
+        )
     response_struct = UserToken()
     db_struct = UserDBModel()
-    db_struct.access_token = response_struct.access_token = jwt_token
-    db_struct.secret_token = response_struct.secret_token = jwt_secret
+    db_struct.access_token = response_struct.access_token = tokens.get(db_struct.DBFields.ACCESS_TOKEN.value)
+    db_struct.secret_token = response_struct.secret_token = tokens.get(db_struct.DBFields.SECRET_TOKEN.value)
+    db_struct.refresh_token = response_struct.refresh_token = tokens.get(db_struct.DBFields.REFRESH_TOKEN.value)
     db_struct.token_type = response_struct.token_type = "bearer"
+    # dont send the email and password to the client
     db_struct.email = user_details.email
+    db_struct.password = hash_and_salt_password(user_details.password)
     db_struct = jsonable_encoder(db_struct)
     await db.insert_one(db_struct)
     return JSONResponse(
@@ -51,15 +97,66 @@ async def create_access_token(
 
 
 @router.post(
+    "/refresh_auth",
+    response_description="Refreshes the access token with the given OAuth 2 token, refresh token and secret token.",
+    response_model=UserToken,
+    responses={
+        400: {"model": UserAuthFailed},
+    },
+)
+async def refresh_auth(
+    user_details: RefreshTokenEndpoint = Body(...),
+    db: AsyncIOMotorCollection = Depends(
+        get_db(database_name=users_db, collection_name=users_collection)
+    ),
+):
+    user_details_dict = dict(user_details)
+    db_fields = UserDBModel.DBFields
+    # this will already handle if the token is expired or not.
+    payload = jwt.decode(
+        user_details_dict.get(db_fields.ACCESS_TOKEN.value),
+        user_details_dict.get(db_fields.SECRET_TOKEN.value),
+        algorithms=["HS256"],
+    )
+    # if we are here, the token is valid. generate new tokens.
+    new_access_token = jwt_account_encode(
+        payload.get(db_fields.USER_ID.value),
+        payload.get(db_fields.EMAIL.value),
+        payload.get(db_fields.PASSWORD.value),
+    )
+    # match the email in the payload with the email in the database.
+    # and also match refresh token that is supplied.
+    await db.update_one(
+        {
+            "$and": [
+                {
+                    db_fields.ACCESS_TOKEN.value: dict(payload).get(
+                        db_fields.EMAIL.value
+                    )
+                },
+                {
+                    db_fields.REFRESH_TOKEN.value: user_details_dict.get(
+                        db_fields.REFRESH_TOKEN.value
+                    )
+                },
+            ]
+        },
+        {"$set": {db_fields.ACCESS_TOKEN.value: new_access_token}},
+    )
+    response_struct = UserToken()
+    response_struct.secret_token = user_details_dict.get(db_fields.SECRET_TOKEN.value)
+    response_struct.refresh_token = user_details_dict.get(db_fields.REFRESH_TOKEN.value)
+    response_struct.access_token = new_access_token
+    response_struct.token_type = "bearer"
+    return JSONResponse(
+        status_code=http.HTTPStatus.OK, content=jsonable_encoder(response_struct)
+    )
+
+
+@router.post(
     "/login",
     response_description="Logins with Bearer OAuth 2 token and Secret token.",
     response_model=UserToken,
-    responses={
-        400: {
-            "model": UserAuthFailed,
-            "description": "Invalid credentials or user not found.",
-        }
-    },
 )
 async def login(
     user_details: UserLogin = Body(...),
@@ -67,37 +164,30 @@ async def login(
         get_db(database_name=users_db, collection_name=users_collection)
     ),
 ):
+    f"""
+    Logins with Bearer OAuth 2 token and Secret token.
+    :param user_details: {UserLogin}
+    :param db: {AsyncIOMotorCollection}
+    :return: {UserToken}
+    """
     db_fields = UserDBModel.DBFields
-    user_credentials = await db.find_one({"access_token": user_details.access_token})
+    user_credentials = await db.find_one(
+        {db_fields.ACCESS_TOKEN.value: user_details.access_token}
+    )
     if user_credentials:
         user_credentials_dict = dict(user_credentials)
-        try:
-            print(user_credentials_dict)
-            print(user_credentials_dict.get(db_fields.ACCESS_TOKEN.value))
-            jwt.decode(
-                user_credentials_dict.get(db_fields.ACCESS_TOKEN.value),
-                user_credentials_dict.get(db_fields.SECRET_TOKEN.value),
-                algorithms=["HS256"],
-            )
-        except jwt.ExpiredSignatureError:
-            return JSONResponse(
-                status_code=http.HTTPStatus.BAD_REQUEST,
-                content={
-                    "error": "access token expired",
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            )
-        except jwt.InvalidTokenError:
-            return JSONResponse(
-                status_code=http.HTTPStatus.BAD_REQUEST,
-                content={
-                    "error": "invalid secret token",
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            )
-        if (
-            user_credentials_dict.get(db_fields.SECRET_TOKEN)
-            == user_details.secret_token
+        # we don't care about the payload for now, just check if the token is not expired,
+        # and if the secret token is valid.
+        payload = jwt_decode(
+            user_credentials_dict.get(db_fields.ACCESS_TOKEN.value),
+            user_credentials_dict.get(db_fields.SECRET_TOKEN.value),
+        )
+        # if yes, we are not done yet! payload carries the plain password.
+        # and user_credentials_dict carries the hashed password.
+        # compare em! juust for a bit extra security. probably unnecessary. but whatever.
+        if compare_plain_hashed_password(
+            dict(payload).get(db_fields.PASSWORD.value),
+            user_credentials_dict.get(db_fields.PASSWORD.value),
         ):
             return UserToken(
                 access_token=user_credentials_dict.get(db_fields.ACCESS_TOKEN.value),
@@ -108,8 +198,9 @@ async def login(
             return JSONResponse(
                 status_code=http.HTTPStatus.BAD_REQUEST,
                 content={
-                    "error": "invalid secret token",
-                    "timestamp": datetime.now().isoformat(),
+                    "error": "User credentials are invalid.",
+                    "message": "Please check your access token and secret token.",
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 },
             )
     else:

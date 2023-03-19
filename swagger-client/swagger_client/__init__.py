@@ -16,17 +16,14 @@ from __future__ import absolute_import
 
 # import apis into sdk package
 from swagger_client.api.default_api import DefaultApi
-
 # import ApiClient
 from swagger_client.api_client import ApiClient
 from swagger_client.configuration import Configuration
-
 # import models into sdk package
-from swagger_client.models.any_of_validation_error_loc_items import (
-    AnyOfValidationErrorLocItems,
-)
+from swagger_client.models.any_of_validation_error_loc_items import AnyOfValidationErrorLocItems
 from swagger_client.models.damacana_db_model import DamacanaDBModel
 from swagger_client.models.http_validation_error import HTTPValidationError
+from swagger_client.models.refresh_token_endpoint import RefreshTokenEndpoint
 from swagger_client.models.user_auth_failed import UserAuthFailed
 from swagger_client.models.user_login import UserLogin
 from swagger_client.models.user_signup import UserSignup

@@ -53,17 +53,6 @@ from pprint import pprint
 
 # create an instance of the API class
 api_instance = swagger_client.DefaultApi(swagger_client.ApiClient(configuration))
-body = swagger_client.UserSignup() # UserSignup | 
-
-try:
-    # Create Access Token
-    api_response = api_instance.create_access_token_user_signup_post(body)
-    pprint(api_response)
-except ApiException as e:
-    print("Exception when calling DefaultApi->create_access_token_user_signup_post: %s\n" % e)
-
-# create an instance of the API class
-api_instance = swagger_client.DefaultApi(swagger_client.ApiClient(configuration))
 body = swagger_client.DamacanaDBModel() # DamacanaDBModel | 
 
 try:
@@ -116,17 +105,27 @@ try:
 except ApiException as e:
     print("Exception when calling DefaultApi->login_user_login_post: %s\n" % e)
 
+# create an instance of the API class
+api_instance = swagger_client.DefaultApi(swagger_client.ApiClient(configuration))
+body = swagger_client.RefreshTokenEndpoint() # RefreshTokenEndpoint | 
+
+try:
+    # Refresh Auth
+    api_response = api_instance.refresh_auth_user_refresh_auth_post(body)
+    pprint(api_response)
+except ApiException as e:
+    print("Exception when calling DefaultApi->refresh_auth_user_refresh_auth_post: %s\n" % e)
 
 # create an instance of the API class
 api_instance = swagger_client.DefaultApi(swagger_client.ApiClient(configuration))
-secret_key = 'secret_key' # str |  (optional) (default to secret_key)
+body = swagger_client.UserSignup() # UserSignup | 
 
 try:
-    # Test
-    api_response = api_instance.test_test_get(secret_key=secret_key)
+    # Sign Up
+    api_response = api_instance.sign_up_user_signup_post(body)
     pprint(api_response)
 except ApiException as e:
-    print("Exception when calling DefaultApi->test_test_get: %s\n" % e)
+    print("Exception when calling DefaultApi->sign_up_user_signup_post: %s\n" % e)
 ```
 
 ## Documentation for API Endpoints
@@ -135,19 +134,20 @@ All URIs are relative to */*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
-*DefaultApi* | [**create_access_token_user_signup_post**](docs/DefaultApi.md#create_access_token_user_signup_post) | **POST** /user/signup | Create Access Token
 *DefaultApi* | [**create_damacana_damacana_db_new_post**](docs/DefaultApi.md#create_damacana_damacana_db_new_post) | **POST** /damacana/db/new | Create Damacana
 *DefaultApi* | [**get_damacana_from_id_damacana_db_id_get**](docs/DefaultApi.md#get_damacana_from_id_damacana_db_id_get) | **GET** /damacana/db/{id} | Get Damacana From Id
 *DefaultApi* | [**get_damacana_from_name_damacana_db_search_get**](docs/DefaultApi.md#get_damacana_from_name_damacana_db_search_get) | **GET** /damacana/db/search/ | Get Damacana From Name
 *DefaultApi* | [**list_damacana_storage_damacana_db_get**](docs/DefaultApi.md#list_damacana_storage_damacana_db_get) | **GET** /damacana/db/ | List Damacana Storage
 *DefaultApi* | [**login_user_login_post**](docs/DefaultApi.md#login_user_login_post) | **POST** /user/login | Login
-*DefaultApi* | [**test_test_get**](docs/DefaultApi.md#test_test_get) | **GET** /test | Test
+*DefaultApi* | [**refresh_auth_user_refresh_auth_post**](docs/DefaultApi.md#refresh_auth_user_refresh_auth_post) | **POST** /user/refresh_auth | Refresh Auth
+*DefaultApi* | [**sign_up_user_signup_post**](docs/DefaultApi.md#sign_up_user_signup_post) | **POST** /user/signup | Sign Up
 
 ## Documentation For Models
 
  - [AnyOfValidationErrorLocItems](docs/AnyOfValidationErrorLocItems.md)
  - [DamacanaDBModel](docs/DamacanaDBModel.md)
  - [HTTPValidationError](docs/HTTPValidationError.md)
+ - [RefreshTokenEndpoint](docs/RefreshTokenEndpoint.md)
  - [UserAuthFailed](docs/UserAuthFailed.md)
  - [UserLogin](docs/UserLogin.md)
  - [UserSignup](docs/UserSignup.md)
@@ -156,9 +156,7 @@ Class | Method | HTTP request | Description
 
 ## Documentation For Authorization
 
-
-## HTTPBearer
-
+ All endpoints do not require authorization.
 
 
 ## Author

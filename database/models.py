@@ -76,9 +76,21 @@ class UpdateDamacanaModel(BaseModel):
 
 
 class UserDBModel(BaseModel):
-    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
-    access_token: str = Field("", description="User Access Token")
-    secret_token: str = Field("", description="User Secret Token")
+    id: PyObjectId = Field(
+        default_factory=PyObjectId,
+        alias="_id",
+        description="User ID, optional, best recommended to leave it as it is.",
+    )
+    access_token: str = Field("", description="User Access Token, OAuth 2 Bearer")
+    secret_token: str = Field(
+        "", description="User Secret Token, 16 character hex string"
+    )
+    refresh_token: str = Field(
+        "", description="User Refresh Token, 16 character hex string"
+    )
+    password: str | None = Field(
+        "", description="User Password, hashed&salted password, not plain."
+    )
     token_type: str = Field("", description="Bearer")
     email: str = Field("", description="User Email")
 
@@ -86,10 +98,22 @@ class UserDBModel(BaseModel):
         allow_population_by_field_name = True
         arbitrary_types_allowed = True
         json_encoders = {ObjectId: str}
+        example = {
+            "_id": "123",
+            "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdgZ6qCOlxmhTlu3-SRM8kT3Cm-m1uXGkSI",
+            "secret_token": "a1ca4fd1aeac7d8476f1199ece42cc20",
+            "refresh_token": "a1ca4fd1aeac7d8476f1199ece42cc20",
+            "token_type": "bearer",
+            "password": "$2b#12$ and a bunch of random gibberish.",
+            "email": "example@gmail.com",
+        }
 
     class DBFields(Enum):
         ID = "_id"
+        USER_ID = "user_id"
         ACCESS_TOKEN = "access_token"
         SECRET_TOKEN = "secret_token"
+        REFRESH_TOKEN = "refresh_token"
         TOKEN_TYPE = "token_type"
+        PASSWORD = "password"
         EMAIL = "email"
