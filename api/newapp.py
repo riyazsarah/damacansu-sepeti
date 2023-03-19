@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from api.endpoints.database.damacana_db import router as damacana_db_router
-from api.middlewares.sanitizer.sanitizer import SanitizerMiddleware as sanitizer_middleware
+from api.middlewares.sanitizer.sanitizer import (
+    SanitizerMiddleware as sanitizer_middleware,
+)
+
 
 def new_app():
     app = FastAPI()

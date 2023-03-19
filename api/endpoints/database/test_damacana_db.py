@@ -52,14 +52,13 @@ def test_create_damacana(db, damacana_cache):
         for index, damacana_sample_id in enumerate(result.inserted_ids):
             if damacana_sample_id is not None:
                 assert (
-                        db[damacana_storage].find_one({"_id": damacana_sample_id})
-                        == damacana_cache[index]
+                    db[damacana_storage].find_one({"_id": damacana_sample_id})
+                    == damacana_cache[index]
                 )
             else:
                 print(f"Case on {index} is null.")
     except TypeError as e:
         print(f"Error unpacking inserted_ids: {e}")
-
 
 
 def test_retrieve_damacana_from_id(db, damacana_cache):
@@ -77,11 +76,7 @@ def test_retrieve_damacana_from_id(db, damacana_cache):
     try:
         for index, damacana in enumerate(damacana_cache):
             if damacana is not None:
-                assert (
-                        db[damacana_storage].find_one({
-                            "_id":result[index]
-                        }) == damacana
-                )
+                assert db[damacana_storage].find_one({"_id": result[index]}) == damacana
             else:
                 print(f"Case on {index} is null.")
     except TypeError as e:

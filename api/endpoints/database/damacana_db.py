@@ -1,9 +1,10 @@
 from http import HTTPStatus as status
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body, HTTPException, Depends
 from fastapi.encoders import jsonable_encoder
+from motor.motor_asyncio import AsyncIOMotorCollection
 from starlette.responses import JSONResponse
 from typing import List
-from database.connect import get_db, damacana_db, damacana_storage
+from database.connect import damacana_storage, get_db, damacana_db
 from database.models import DamacanaDBModel
 
 router = APIRouter()
@@ -14,18 +15,19 @@ router = APIRouter()
     response_description="Adds new damacana to the database.",
     response_model=DamacanaDBModel,
 )
-async def create_damacana(damacana: DamacanaDBModel = Body(...)):
+async def create_damacana(
+    damacana: DamacanaDBModel = Body(...),
+    db: AsyncIOMotorCollection = Depends(get_db(database_name=damacana_db, collection_name=damacana_storage)),
+):
     f"""
     Adds new damacana to the database.
+    :param db: {AsyncIOMotorCollection}
     :param damacana: {str}
     :return: {DamacanaDBModel}
     """
-    db = get_db(damacana_db)
     damacana = jsonable_encoder(damacana)
-    new_damacana_entry = await db[damacana_storage].insert_one(damacana)
-    created_damacana = await db[damacana_storage].find_one(
-        {"_id": new_damacana_entry.inserted_id}
-    )
+    new_damacana = await db.insert_one(damacana)
+    created_damacana = await db.find_one({"_id": new_damacana.inserted_id})
     return JSONResponse(status_code=status.CREATED, content=created_damacana)
 
 
@@ -34,15 +36,18 @@ async def create_damacana(damacana: DamacanaDBModel = Body(...)):
     response_description="Retrieves damacana from it's ID.",
     response_model=DamacanaDBModel,
 )
-async def get_damacana_from_id(damacana_id: str):
+async def get_damacana_from_id(
+    damacana_id: str,
+        db: AsyncIOMotorCollection = Depends(get_db(database_name=damacana_db, collection_name=damacana_storage)),
+):
     f"""
     Retrieves damacana from it's ID.
+    :param db: {AsyncIOMotorCollection}
     :param damacana_id: {str}
     :return:  {DamacanaDBModel}
     """
-    db = get_db(damacana_db)
     if (
-        damacana := await db[damacana_storage].find_one({"_id": damacana_id})
+        damacana := await db.find_one({"_id": damacana_id})
     ) is not None:
         return damacana
     elif damacana is None:
@@ -60,19 +65,21 @@ async def get_damacana_from_id(damacana_id: str):
     response_description="Retrieves a list of damacana that contains the specified name.",
     response_model=List[DamacanaDBModel],
 )
-async def get_damacana_from_name(damacana_name: str):
+async def get_damacana_from_name(
+    damacana_name: str,
+    db: AsyncIOMotorCollection = Depends(get_db(database_name=damacana_db, collection_name=damacana_storage)),
+):
     f"""
     Retrieves a list of damacana that contains the specified name.
+    :param db: {AsyncIOMotorCollection}
     :param damacana_name: {str}
     :return: {List[DamacanaDBModel]}
     """
     # $regex => if string contains
     # $options => regex options, i => lowercase regex search
     # to_list is necessary. it converts the search result to a list, with 1000 length limit.
-    db = get_db(damacana_db)
     damacana_list = (
-        await db[damacana_storage]
-        .find({"name": {"$regex": damacana_name, "$options": "i"}})
+        await db.find({"name": {"$regex": damacana_name, "$options": "i"}})
         .to_list(1000)
     )
     if damacana_list:
@@ -89,15 +96,21 @@ async def get_damacana_from_name(damacana_name: str):
     response_description="Returns everything in damacana storage.",
     response_model=List[DamacanaDBModel],
 )
-async def list_damacana_storage():
+async def list_damacana_storage(
+    db: AsyncIOMotorCollection = Depends(get_db(database_name=damacana_db, collection_name=damacana_storage)),
+):
     f"""
     Returns everything in damacana storage.
     :return:  {List[DamacanaDBModel]}
     """
-    db = get_db(damacana_db)
-    damacana_list = await db[damacana_storage].find().to_list(1000)
-    if not damacana_list:
+    try:
+        damacana_list = await db.find().to_list(1000)
+        if not damacana_list:
+            raise HTTPException(
+                status.BAD_REQUEST, detail="no existing damacana in storage"
+            )
+        return JSONResponse(status_code=status.OK, content=damacana_list)
+    except HTTPException as e:
         raise HTTPException(
-            status.BAD_REQUEST, detail="no existing damacana in storage"
+            status_code=status.INTERNAL_SERVER_ERROR, detail=str(e)
         )
-    return JSONResponse(status_code=status.OK, content=damacana_list)
