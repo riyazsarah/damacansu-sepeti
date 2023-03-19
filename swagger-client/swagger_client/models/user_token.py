@@ -30,23 +30,20 @@ class UserToken(object):
     swagger_types = {
         'access_token': 'str',
         'secret_token': 'str',
-        'token_type': 'str',
-        'expires_in': 'int'
+        'token_type': 'str'
     }
 
     attribute_map = {
         'access_token': 'access_token',
         'secret_token': 'secret_token',
-        'token_type': 'token_type',
-        'expires_in': 'expires_in'
+        'token_type': 'token_type'
     }
 
-    def __init__(self, access_token='', secret_token='', token_type='', expires_in=None):  # noqa: E501
+    def __init__(self, access_token='', secret_token='', token_type=''):  # noqa: E501
         """UserToken - a model defined in Swagger"""  # noqa: E501
         self._access_token = None
         self._secret_token = None
         self._token_type = None
-        self._expires_in = None
         self.discriminator = None
         if access_token is not None:
             self.access_token = access_token
@@ -54,8 +51,6 @@ class UserToken(object):
             self.secret_token = secret_token
         if token_type is not None:
             self.token_type = token_type
-        if expires_in is not None:
-            self.expires_in = expires_in
 
     @property
     def access_token(self):
@@ -125,29 +120,6 @@ class UserToken(object):
         """
 
         self._token_type = token_type
-
-    @property
-    def expires_in(self):
-        """Gets the expires_in of this UserToken.  # noqa: E501
-
-        Token Expires (in minutes)  # noqa: E501
-
-        :return: The expires_in of this UserToken.  # noqa: E501
-        :rtype: int
-        """
-        return self._expires_in
-
-    @expires_in.setter
-    def expires_in(self, expires_in):
-        """Sets the expires_in of this UserToken.
-
-        Token Expires (in minutes)  # noqa: E501
-
-        :param expires_in: The expires_in of this UserToken.  # noqa: E501
-        :type: int
-        """
-
-        self._expires_in = expires_in
 
     def to_dict(self):
         """Returns the model properties as a dict"""

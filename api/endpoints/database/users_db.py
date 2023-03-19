@@ -1,6 +1,7 @@
 import http
 from datetime import datetime
 
+import jwt
 from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from motor.motor_asyncio import AsyncIOMotorCollection
@@ -41,7 +42,6 @@ async def create_access_token(
     db_struct.access_token = response_struct.access_token = jwt_token
     db_struct.secret_token = response_struct.secret_token = jwt_secret
     db_struct.token_type = response_struct.token_type = "bearer"
-    db_struct.expires_in = response_struct.expires_in = 3600
     db_struct.email = user_details.email
     db_struct = jsonable_encoder(db_struct)
     await db.insert_one(db_struct)
@@ -67,15 +67,35 @@ async def login(
         get_db(database_name=users_db, collection_name=users_collection)
     ),
 ):
+    db_fields = UserDBModel.DBFields
     user_credentials = await db.find_one({"access_token": user_details.access_token})
     if user_credentials:
         user_credentials_dict = dict(user_credentials)
-        if user_credentials_dict.get("secret_token") == user_details.secret_token:
+        try:
+            print(user_credentials_dict)
+            print(user_credentials_dict.get(db_fields.ACCESS_TOKEN.value))
+            jwt.decode(user_credentials_dict.get(db_fields.ACCESS_TOKEN.value), user_credentials_dict.get(db_fields.SECRET_TOKEN.value), algorithms=["HS256"])
+        except jwt.ExpiredSignatureError:
+            return JSONResponse(
+                status_code=http.HTTPStatus.BAD_REQUEST,
+                content={
+                    "error": "access token expired",
+                    "timestamp": datetime.utcnow().isoformat(),
+                }
+            )
+        except jwt.InvalidTokenError:
+            return JSONResponse(
+                status_code=http.HTTPStatus.BAD_REQUEST,
+                content={
+                    "error": "invalid secret token",
+                    "timestamp": datetime.utcnow().isoformat(),
+                }
+            )
+        if user_credentials_dict.get(db_fields.SECRET_TOKEN) == user_details.secret_token:
             return UserToken(
-                access_token=user_credentials_dict.get("access_token"),
-                secret_token=user_credentials_dict.get("secret_token"),
-                token_type=user_credentials_dict.get("token_type"),
-                expires_in=user_credentials_dict.get("expires_in"),
+                access_token=user_credentials_dict.get(db_fields.ACCESS_TOKEN.value),
+                secret_token=user_credentials_dict.get(db_fields.SECRET_TOKEN.value),
+                token_type=user_credentials_dict.get(db_fields.TOKEN_TYPE.value),
             )
         else:
             return JSONResponse(

@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from bson import ObjectId
 from pydantic import BaseModel, Field
 from typing import Union
-
+from enum import Enum
 
 class PyObjectId(ObjectId):
     @classmethod
@@ -42,6 +42,15 @@ class DamacanaDBModel(BaseModel):
                 "quantity": 30,
             }
         }
+    class DBFields(Enum):
+        ID = "_id"
+        NAME = "name"
+        DESCRIPTION = "description"
+        IMAGE = "image"
+        PRICE = "price"
+        QUANTITY = "quantity"
+
+
 
 
 class UpdateDamacanaModel(BaseModel):
@@ -66,18 +75,21 @@ class UpdateDamacanaModel(BaseModel):
         }
 
 
-class UserDBModel(BaseModel):
+class UserDBModel (BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     access_token: str = Field("", description="User Access Token")
     secret_token: str = Field("", description="User Secret Token")
     token_type: str = Field("", description="Bearer")
     email: str = Field("", description="User Email")
-    expires_in: int = Field(
-        datetime.utcnow() + timedelta(hours=24),
-        description="Token Expires (in minutes)",
-    )
 
     class Config:
         allow_population_by_field_name = True
         arbitrary_types_allowed = True
         json_encoders = {ObjectId: str}
+
+    class DBFields(Enum):
+            ID = "_id"
+            ACCESS_TOKEN = "access_token"
+            SECRET_TOKEN = "secret_token"
+            TOKEN_TYPE = "token_type"
+            EMAIL = "email"

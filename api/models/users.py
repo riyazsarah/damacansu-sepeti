@@ -20,7 +20,6 @@ class UserToken(ABC, BaseModel):
     access_token: str | None = Field("", description="User Access Token")
     secret_token: str | None = Field("", description="User Secret Token")
     token_type: str | None = Field("", description="Bearer, or whatever.")
-    expires_in: int | None = Field("", description="Token Expires (in minutes)")
 
     class Config:
         allow_population_by_field_name = True
@@ -30,7 +29,6 @@ class UserToken(ABC, BaseModel):
                 "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEzMjcxMjgyMDIxMzkyNzM2MTY1MDEwNTAyODc3N",
                 "secret_token": "ec6e3c68bbf1869e60a16d10a200e23d",
                 "token_type": "bearer",
-                "expires_in": 3600,
             }
         }
 
