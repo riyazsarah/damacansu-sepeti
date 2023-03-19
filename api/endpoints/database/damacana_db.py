@@ -7,11 +7,13 @@ from typing import List
 from database.connect import damacana_storage, get_db, damacana_db
 from database.models import DamacanaDBModel
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/damacana/db"
+)
 
 
 @router.post(
-    "/damacana/new",
+    "/new",
     response_description="Adds new damacana to the database.",
     response_model=DamacanaDBModel,
 )
@@ -32,7 +34,7 @@ async def create_damacana(
 
 
 @router.get(
-    "/damacana/{id}",
+    "/{id}",
     response_description="Retrieves damacana from it's ID.",
     response_model=DamacanaDBModel,
 )
@@ -61,7 +63,7 @@ async def get_damacana_from_id(
 
 
 @router.get(
-    "/damacana/search/",
+    "/search/",
     response_description="Retrieves a list of damacana that contains the specified name.",
     response_model=List[DamacanaDBModel],
 )
@@ -92,7 +94,7 @@ async def get_damacana_from_name(
 
 
 @router.get(
-    "/damacana/",
+    "/",
     response_description="Returns everything in damacana storage.",
     response_model=List[DamacanaDBModel],
 )
