@@ -59,7 +59,7 @@ async def create_access_token(
             "model": UserAuthFailed,
             "description": "Invalid credentials or user not found.",
         }
-    }
+    },
 )
 async def login(
     user_details: UserLogin = Body(...),
@@ -74,14 +74,18 @@ async def login(
         try:
             print(user_credentials_dict)
             print(user_credentials_dict.get(db_fields.ACCESS_TOKEN.value))
-            jwt.decode(user_credentials_dict.get(db_fields.ACCESS_TOKEN.value), user_credentials_dict.get(db_fields.SECRET_TOKEN.value), algorithms=["HS256"])
+            jwt.decode(
+                user_credentials_dict.get(db_fields.ACCESS_TOKEN.value),
+                user_credentials_dict.get(db_fields.SECRET_TOKEN.value),
+                algorithms=["HS256"],
+            )
         except jwt.ExpiredSignatureError:
             return JSONResponse(
                 status_code=http.HTTPStatus.BAD_REQUEST,
                 content={
                     "error": "access token expired",
                     "timestamp": datetime.utcnow().isoformat(),
-                }
+                },
             )
         except jwt.InvalidTokenError:
             return JSONResponse(
@@ -89,9 +93,12 @@ async def login(
                 content={
                     "error": "invalid secret token",
                     "timestamp": datetime.utcnow().isoformat(),
-                }
+                },
             )
-        if user_credentials_dict.get(db_fields.SECRET_TOKEN) == user_details.secret_token:
+        if (
+            user_credentials_dict.get(db_fields.SECRET_TOKEN)
+            == user_details.secret_token
+        ):
             return UserToken(
                 access_token=user_credentials_dict.get(db_fields.ACCESS_TOKEN.value),
                 secret_token=user_credentials_dict.get(db_fields.SECRET_TOKEN.value),
@@ -103,7 +110,7 @@ async def login(
                 content={
                     "error": "invalid secret token",
                     "timestamp": datetime.now().isoformat(),
-                }
+                },
             )
     else:
         return JSONResponse(
@@ -111,5 +118,5 @@ async def login(
             content={
                 "error": "no user found with the specified access token",
                 "datetime": datetime.now().isoformat(),
-            }
+            },
         )

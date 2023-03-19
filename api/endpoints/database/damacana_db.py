@@ -49,7 +49,9 @@ async def get_damacana_from_id(
     :param damacana_id: {str}
     :return:  {DamacanaDBModel}
     """
-    if (damacana := await db.find_one({DamacanaDBModel.DBFields.ID.value: damacana_id})) is not None:
+    if (
+        damacana := await db.find_one({DamacanaDBModel.DBFields.ID.value: damacana_id})
+    ) is not None:
         return damacana
     elif damacana is None:
         return HTTPException(
@@ -82,7 +84,12 @@ async def get_damacana_from_name(
     # $options => regex options, i => lowercase regex search
     # to_list is necessary. it converts the search result to a list, with 1000 length limit.
     damacana_list = await db.find(
-        {DamacanaDBModel.DBFields.NAME.value: {"$regex": damacana_name, "$options": "i"}}
+        {
+            DamacanaDBModel.DBFields.NAME.value: {
+                "$regex": damacana_name,
+                "$options": "i",
+            }
+        }
     ).to_list(1000)
     if damacana_list:
         return JSONResponse(status_code=status.OK, content=damacana_list)

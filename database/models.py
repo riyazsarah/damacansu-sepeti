@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 from typing import Union
 from enum import Enum
 
+
 class PyObjectId(ObjectId):
     @classmethod
     def __get_validators__(cls):
@@ -42,6 +43,7 @@ class DamacanaDBModel(BaseModel):
                 "quantity": 30,
             }
         }
+
     class DBFields(Enum):
         ID = "_id"
         NAME = "name"
@@ -49,8 +51,6 @@ class DamacanaDBModel(BaseModel):
         IMAGE = "image"
         PRICE = "price"
         QUANTITY = "quantity"
-
-
 
 
 class UpdateDamacanaModel(BaseModel):
@@ -75,7 +75,7 @@ class UpdateDamacanaModel(BaseModel):
         }
 
 
-class UserDBModel (BaseModel):
+class UserDBModel(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     access_token: str = Field("", description="User Access Token")
     secret_token: str = Field("", description="User Secret Token")
@@ -88,8 +88,8 @@ class UserDBModel (BaseModel):
         json_encoders = {ObjectId: str}
 
     class DBFields(Enum):
-            ID = "_id"
-            ACCESS_TOKEN = "access_token"
-            SECRET_TOKEN = "secret_token"
-            TOKEN_TYPE = "token_type"
-            EMAIL = "email"
+        ID = "_id"
+        ACCESS_TOKEN = "access_token"
+        SECRET_TOKEN = "secret_token"
+        TOKEN_TYPE = "token_type"
+        EMAIL = "email"

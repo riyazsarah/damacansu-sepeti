@@ -32,6 +32,7 @@ class UserToken(ABC, BaseModel):
             }
         }
 
+
 class UserAuthFailed(ABC, BaseModel):
     error: str = Field("no error, yet.", description="Error Message")
     timestamp: datetime = Field(datetime.now().isoformat(), description="Timestamp")
