@@ -55,10 +55,10 @@ def damacana_cache():
             "image": "https://www.example.com/image.jpg",
             "price": 23.99,
             "quantity": 30,
-        }
-
+        },
     ]
     yield damacana
+
 
 @pytest.fixture()
 def damacana_names(damacana_cache):
@@ -67,6 +67,8 @@ def damacana_names(damacana_cache):
     """
     dict_damacana_names = [dict(damacana).get("name") for damacana in damacana_cache]
     yield dict_damacana_names
+
+
 def test_create_damacana(db, damacana_cache):
     # Call the create_damacana function with the test damacana object
     result = db[damacana_storage].insert_many(damacana_cache)
@@ -109,6 +111,7 @@ def test_get_damacana_from_id(db, damacana_cache):
     except TypeError as e:
         print(f"Error unpacking inserted_ids: {e}")
 
+
 def test_get_damacana_from_name(db, damacana_cache, damacana_names):
     db[damacana_storage].insert_many(damacana_cache)
     assert db[damacana_storage].count_documents({}) == len(damacana_cache)
@@ -116,7 +119,9 @@ def test_get_damacana_from_name(db, damacana_cache, damacana_names):
         for damacana_name in damacana_names:
             # do a regex search on result, that will return the all JSON's that name elements has "erikli" in its name.
             # case insensitive.
-            expected_response = db[damacana_storage].find({"name": {"$regex": f"{damacana_name}", "$options": "i"}})
+            expected_response = db[damacana_storage].find(
+                {"name": {"$regex": f"{damacana_name}", "$options": "i"}}
+            )
             # now modify damacana_cache to only contain the expected response.
             # this is done by iterating over every element in damacana_cache, and if the element's name is not equal to "erikli",
             # remove it from the list.
@@ -130,6 +135,7 @@ def test_get_damacana_from_name(db, damacana_cache, damacana_names):
 
     except TypeError as e:
         print(f"Error unpacking inserted_ids: {e}")
+
 
 def test_list_damacana_storage(db, damacana_cache):
     db[damacana_storage].insert_many(damacana_cache)
