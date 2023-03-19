@@ -53,14 +53,25 @@ from pprint import pprint
 
 # create an instance of the API class
 api_instance = swagger_client.DefaultApi(swagger_client.ApiClient(configuration))
+body = swagger_client.UserSignup() # UserSignup | 
+
+try:
+    # Create Access Token
+    api_response = api_instance.create_access_token_user_signup_post(body)
+    pprint(api_response)
+except ApiException as e:
+    print("Exception when calling DefaultApi->create_access_token_user_signup_post: %s\n" % e)
+
+# create an instance of the API class
+api_instance = swagger_client.DefaultApi(swagger_client.ApiClient(configuration))
 body = swagger_client.DamacanaDBModel() # DamacanaDBModel | 
 
 try:
     # Create Damacana
-    api_response = api_instance.create_damacana_damacana_new_post(body)
+    api_response = api_instance.create_damacana_damacana_db_new_post(body)
     pprint(api_response)
 except ApiException as e:
-    print("Exception when calling DefaultApi->create_damacana_damacana_new_post: %s\n" % e)
+    print("Exception when calling DefaultApi->create_damacana_damacana_db_new_post: %s\n" % e)
 
 # create an instance of the API class
 api_instance = swagger_client.DefaultApi(swagger_client.ApiClient(configuration))
@@ -68,10 +79,10 @@ damacana_id = 'damacana_id_example' # str |
 
 try:
     # Get Damacana From Id
-    api_response = api_instance.get_damacana_from_id_damacana_id_get(damacana_id)
+    api_response = api_instance.get_damacana_from_id_damacana_db_id_get(damacana_id)
     pprint(api_response)
 except ApiException as e:
-    print("Exception when calling DefaultApi->get_damacana_from_id_damacana_id_get: %s\n" % e)
+    print("Exception when calling DefaultApi->get_damacana_from_id_damacana_db_id_get: %s\n" % e)
 
 # create an instance of the API class
 api_instance = swagger_client.DefaultApi(swagger_client.ApiClient(configuration))
@@ -79,20 +90,43 @@ damacana_name = 'damacana_name_example' # str |
 
 try:
     # Get Damacana From Name
-    api_response = api_instance.get_damacana_from_name_damacana_search_get(damacana_name)
+    api_response = api_instance.get_damacana_from_name_damacana_db_search_get(damacana_name)
     pprint(api_response)
 except ApiException as e:
-    print("Exception when calling DefaultApi->get_damacana_from_name_damacana_search_get: %s\n" % e)
+    print("Exception when calling DefaultApi->get_damacana_from_name_damacana_db_search_get: %s\n" % e)
 
 # create an instance of the API class
 api_instance = swagger_client.DefaultApi(swagger_client.ApiClient(configuration))
 
 try:
     # List Damacana Storage
-    api_response = api_instance.list_damacana_storage_damacana_get()
+    api_response = api_instance.list_damacana_storage_damacana_db_get()
     pprint(api_response)
 except ApiException as e:
-    print("Exception when calling DefaultApi->list_damacana_storage_damacana_get: %s\n" % e)
+    print("Exception when calling DefaultApi->list_damacana_storage_damacana_db_get: %s\n" % e)
+
+# create an instance of the API class
+api_instance = swagger_client.DefaultApi(swagger_client.ApiClient(configuration))
+body = swagger_client.UserLogin() # UserLogin | 
+
+try:
+    # Login
+    api_response = api_instance.login_user_login_post(body)
+    pprint(api_response)
+except ApiException as e:
+    print("Exception when calling DefaultApi->login_user_login_post: %s\n" % e)
+
+
+# create an instance of the API class
+api_instance = swagger_client.DefaultApi(swagger_client.ApiClient(configuration))
+secret_key = 'secret_key' # str |  (optional) (default to secret_key)
+
+try:
+    # Test
+    api_response = api_instance.test_test_get(secret_key=secret_key)
+    pprint(api_response)
+except ApiException as e:
+    print("Exception when calling DefaultApi->test_test_get: %s\n" % e)
 ```
 
 ## Documentation for API Endpoints
@@ -101,21 +135,30 @@ All URIs are relative to */*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
-*DefaultApi* | [**create_damacana_damacana_new_post**](docs/DefaultApi.md#create_damacana_damacana_new_post) | **POST** /damacana/new | Create Damacana
-*DefaultApi* | [**get_damacana_from_id_damacana_id_get**](docs/DefaultApi.md#get_damacana_from_id_damacana_id_get) | **GET** /damacana/{id} | Get Damacana From Id
-*DefaultApi* | [**get_damacana_from_name_damacana_search_get**](docs/DefaultApi.md#get_damacana_from_name_damacana_search_get) | **GET** /damacana/search/ | Get Damacana From Name
-*DefaultApi* | [**list_damacana_storage_damacana_get**](docs/DefaultApi.md#list_damacana_storage_damacana_get) | **GET** /damacana/ | List Damacana Storage
+*DefaultApi* | [**create_access_token_user_signup_post**](docs/DefaultApi.md#create_access_token_user_signup_post) | **POST** /user/signup | Create Access Token
+*DefaultApi* | [**create_damacana_damacana_db_new_post**](docs/DefaultApi.md#create_damacana_damacana_db_new_post) | **POST** /damacana/db/new | Create Damacana
+*DefaultApi* | [**get_damacana_from_id_damacana_db_id_get**](docs/DefaultApi.md#get_damacana_from_id_damacana_db_id_get) | **GET** /damacana/db/{id} | Get Damacana From Id
+*DefaultApi* | [**get_damacana_from_name_damacana_db_search_get**](docs/DefaultApi.md#get_damacana_from_name_damacana_db_search_get) | **GET** /damacana/db/search/ | Get Damacana From Name
+*DefaultApi* | [**list_damacana_storage_damacana_db_get**](docs/DefaultApi.md#list_damacana_storage_damacana_db_get) | **GET** /damacana/db/ | List Damacana Storage
+*DefaultApi* | [**login_user_login_post**](docs/DefaultApi.md#login_user_login_post) | **POST** /user/login | Login
+*DefaultApi* | [**test_test_get**](docs/DefaultApi.md#test_test_get) | **GET** /test | Test
 
 ## Documentation For Models
 
  - [AnyOfValidationErrorLocItems](docs/AnyOfValidationErrorLocItems.md)
  - [DamacanaDBModel](docs/DamacanaDBModel.md)
  - [HTTPValidationError](docs/HTTPValidationError.md)
+ - [UserAuthFailed](docs/UserAuthFailed.md)
+ - [UserLogin](docs/UserLogin.md)
+ - [UserSignup](docs/UserSignup.md)
+ - [UserToken](docs/UserToken.md)
  - [ValidationError](docs/ValidationError.md)
 
 ## Documentation For Authorization
 
- All endpoints do not require authorization.
+
+## HTTPBearer
+
 
 
 ## Author

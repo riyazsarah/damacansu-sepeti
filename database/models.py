@@ -1,5 +1,7 @@
+from datetime import datetime, timedelta
+
 from bson import ObjectId
-from pydantic import BaseModel, Field, PyObject
+from pydantic import BaseModel, Field
 from typing import Union
 
 
@@ -62,3 +64,20 @@ class UpdateDamacanaModel(BaseModel):
                 "quantity": 30,
             }
         }
+
+
+class UserDBModel(BaseModel):
+    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    access_token: str = Field("", description="User Access Token")
+    secret_token: str = Field("", description="User Secret Token")
+    token_type: str = Field("", description="Bearer")
+    email: str = Field("", description="User Email")
+    expires_in: int = Field(
+        datetime.utcnow() + timedelta(hours=24),
+        description="Token Expires (in minutes)",
+    )
+
+    class Config:
+        allow_population_by_field_name = True
+        arbitrary_types_allowed = True
+        json_encoders = {ObjectId: str}

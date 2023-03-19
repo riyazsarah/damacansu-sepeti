@@ -28,9 +28,8 @@ async def create_damacana(
     :return: {DamacanaDBModel}
     """
     damacana = jsonable_encoder(damacana)
-    new_damacana = await db.insert_one(damacana)
-    created_damacana = await db.find_one({"_id": new_damacana.inserted_id})
-    return JSONResponse(status_code=status.CREATED, content=created_damacana)
+    await db.insert_one(damacana)
+    return JSONResponse(status_code=status.CREATED, content=damacana)
 
 
 @router.get(
