@@ -19,7 +19,7 @@ from api.endpoints.database.models import UserDBModel
 # generate user login object yourself, after signing up.
 
 @pytest.fixture
-def db():
+def test_http_client():
     client = TestClient(new_app())
     yield client
 
@@ -89,7 +89,7 @@ def create_new_user(
     return inserted_dict, tokens
 
 
-def test_user_signup(db, user_details, db_fields):
+def test_user_signup(db, user_details, db_fields, test_http_client):
     f"""
     Tests:
     -> If the user is added to the database.
@@ -116,7 +116,7 @@ def test_user_signup(db, user_details, db_fields):
         user_details.password, s.get(db_fields.PASSWORD.value)
     )
     # now hit real endpoint
-    response = db.post("/user/signup", json=user_details.dict())
+    response = test_http_client.post("/user/signup", json=user_details.dict())
     # assure that status code is 200
     assert response.status_code == 200
     # and that is it. we already tested the database operations in this test.
