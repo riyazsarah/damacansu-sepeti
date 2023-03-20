@@ -18,6 +18,6 @@ kullanmak için
 gendoc.sh http://127.0.0.1:8080
 ````
 
-ilk parametere sitenin adresini verin.
+ilk parametere **swagger clientını hostlamak istediğiniz sitenin adresini** verin. şuanda client dosyalarını sadece README.md docları için yüklüyorum.
 
 <3
