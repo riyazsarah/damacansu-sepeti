@@ -1,7 +1,6 @@
 import mongomock
 import pytest
-from database.connect import damacana_db, damacana_storage
-from bson import raw_bson
+from api.endpoints.database.connect import damacana_db, damacana_storage
 
 testCases = [
     {

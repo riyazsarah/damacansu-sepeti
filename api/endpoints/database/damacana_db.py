@@ -4,8 +4,8 @@ from fastapi.encoders import jsonable_encoder
 from motor.motor_asyncio import AsyncIOMotorCollection
 from starlette.responses import JSONResponse
 from typing import List
-from database.connect import damacana_storage, get_db, damacana_db
-from database.models import DamacanaDBModel
+from api.endpoints.database.connect import damacana_storage, get_db, damacana_db
+from api.endpoints.database.models import DamacanaDBModel
 
 router = APIRouter(prefix="/damacana/db")
 

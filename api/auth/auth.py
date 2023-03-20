@@ -3,13 +3,12 @@ import re
 import secrets
 import uuid
 from datetime import datetime, timedelta
-from typing import Tuple, Dict
-from fastapi import Depends, HTTPException
-from fastapi.security import HTTPAuthorizationCredentials
+from typing import Dict
+from fastapi import HTTPException
 import jwt
 from passlib.handlers import bcrypt
 
-from database.models import UserDBModel
+from api.endpoints.database.models import UserDBModel
 
 
 def jwt_decode(token: str, secret_key: str) -> Dict[str, any]:
@@ -42,7 +41,7 @@ def jwt_account_encode(
     user_id: int,
     email: str = "example@gmail.com",
     password: str = "example123456#@",
-    exp_time: any = datetime.utcnow() + timedelta(hours=24),
+    exp_time: datetime = datetime.utcnow() + timedelta(hours=24),
 ) -> Dict[str, any]:
     f"""
     Encodes the JWT with user_id, email, password and expiration time.
@@ -71,12 +70,13 @@ def jwt_account_encode(
     }
 
 
-def sign_up_handler(email: str, password: str) -> Dict[str, any]:
+def sign_up_handler(email: str, password: str, exp_time: datetime = datetime.utcnow() + timedelta(hours=24)) -> Dict[str, any]:
     f"""
     Generates an OAuth 2 and Secret token, with given email and passwords.
+    :param exp_time: {datetime}
     :param email: {str}
     :param password:  {str}
-    :return: {Dict[str]} => OAuth 2 Token - Secret Token - Refresh Token in order
+    :return: {Dict[str, any]} => OAuth 2 Token - Secret Token - Refresh Token in order
     """
     # Check if the email is already in use
     # if email_already_exists(email):
@@ -86,7 +86,7 @@ def sign_up_handler(email: str, password: str) -> Dict[str, any]:
         user_id = uuid.uuid4().int
 
         # Generate a JWT token for the new user
-        return jwt_account_encode(user_id, email, password)
+        return jwt_account_encode(user_id, email, password, exp_time)
     else:
         raise HTTPException(
             status_code=http.HTTPStatus.BAD_REQUEST, detail="email not valid"

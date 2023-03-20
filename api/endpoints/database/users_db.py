@@ -1,9 +1,8 @@
 import http
-import secrets
 from datetime import datetime
 
 import jwt
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from motor.motor_asyncio import AsyncIOMotorCollection
 from starlette.responses import JSONResponse
@@ -22,8 +21,8 @@ from api.models.users import (
     UserAuthFailed,
     RefreshTokenEndpoint,
 )
-from database.models import UserDBModel
-from database.connect import get_db, users_db, users_collection
+from api.endpoints.database.models import UserDBModel
+from api.endpoints.database.connect import get_db, users_db, users_collection
 
 router = APIRouter(prefix="/user")
 
@@ -47,11 +46,9 @@ async def sign_up(
     TODO: Seperate secret token creation from access token creation.
     :param user_details: {UserSignup}
     :param db:  {AsyncIOMotorCollection}
-    :return:
+    :return: {UserToken}
     """
-    tokens = sign_up_handler(
-        email=user_details.email, password=user_details.password
-    )
+    tokens = sign_up_handler(email=user_details.email, password=user_details.password)
     # assure that user not yet signed up
     user_credentials = await db.find_one(
         {UserDBModel.DBFields.EMAIL.value: user_details.email}
@@ -80,20 +77,36 @@ async def sign_up(
                 "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             },
         )
-    response_struct = UserToken()
+    db_struct = return_db_struct(tokens, user_details)
+    await db.insert_one(db_struct)
+    return JSONResponse(
+        status_code=http.HTTPStatus.CREATED,
+        content={
+            UserDBModel.DBFields.ACCESS_TOKEN.value: db_struct.access_token,
+            UserDBModel.DBFields.SECRET_TOKEN.value: db_struct.secret_token,
+            UserDBModel.DBFields.REFRESH_TOKEN.value: db_struct.refresh_token,
+            UserDBModel.DBFields.TOKEN_TYPE.value: db_struct.token_type,
+        },
+    )
+
+
+def return_db_struct(tokens: dict, user_details: UserSignup) -> UserDBModel:
+    f"""
+    Returns the response and updates the database with the new tokens.
+    Password is hashed on the way.
+    :param user_details: {UserSignup}
+    :param tokens: {dict} -> Contains the access, secret and refresh tokens.
+    :return: {UserDBModel} -> Returns the client response and the database structure, in order.
+    """
     db_struct = UserDBModel()
-    db_struct.access_token = response_struct.access_token = tokens.get(db_struct.DBFields.ACCESS_TOKEN.value)
-    db_struct.secret_token = response_struct.secret_token = tokens.get(db_struct.DBFields.SECRET_TOKEN.value)
-    db_struct.refresh_token = response_struct.refresh_token = tokens.get(db_struct.DBFields.REFRESH_TOKEN.value)
-    db_struct.token_type = response_struct.token_type = "bearer"
-    # dont send the email and password to the client
+    db_struct.access_token = tokens.get(UserDBModel.DBFields.ACCESS_TOKEN.value)
+    db_struct.secret_token = tokens.get(UserDBModel.DBFields.SECRET_TOKEN.value)
+    db_struct.refresh_token = tokens.get(UserDBModel.DBFields.REFRESH_TOKEN.value)
+    db_struct.token_type = "bearer"
     db_struct.email = user_details.email
     db_struct.password = hash_and_salt_password(user_details.password)
     db_struct = jsonable_encoder(db_struct)
-    await db.insert_one(db_struct)
-    return JSONResponse(
-        status_code=http.HTTPStatus.CREATED, content=response_struct.dict()
-    )
+    return db_struct
 
 
 @router.post(
@@ -126,7 +139,7 @@ async def refresh_auth(
     )
     # match the email in the payload with the email in the database.
     # and also match refresh token that is supplied.
-    await db.update_one(
+    result = await db.update_one(
         {
             "$and": [
                 {
@@ -143,6 +156,11 @@ async def refresh_auth(
         },
         {"$set": {db_fields.ACCESS_TOKEN.value: new_access_token}},
     )
+    if result.count_documents({}) == 0:
+        raise HTTPException(
+            status_code=http.HTTPStatus.BAD_REQUEST,
+            detail="Invalid refresh token.",
+        )
     response_struct = UserToken()
     response_struct.secret_token = user_details_dict.get(db_fields.SECRET_TOKEN.value)
     response_struct.refresh_token = user_details_dict.get(db_fields.REFRESH_TOKEN.value)
